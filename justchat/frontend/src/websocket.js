@@ -52,7 +52,9 @@ class WebSocketService {
       chatId: chatId 
     });
   }
-
+  disconnect() {
+    this.socketRef.close()
+  }
   newChatMessage(message) {
     this.sendMessage({ 
       command: 'new_message', 
