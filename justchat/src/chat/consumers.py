@@ -7,22 +7,21 @@ from .views import get_last_10_messages, get_user_contact, get_current_chat
 
 User = get_user_model()
 
+
 class ChatConsumer(WebsocketConsumer):
 
     def fetch_messages(self, data):
-       
         messages = get_last_10_messages(data['chatId'])
         content = {
             'command': 'messages',
             'messages': self.messages_to_json(messages)
         }
         self.send_message(content)
-        
 
     def new_message(self, data):
         user_contact = get_user_contact(data['from'])
         message = Message.objects.create(
-            contact=user_contact, 
+            contact=user_contact,
             content=data['message'])
         current_chat = get_current_chat(data['chatId'])
         current_chat.messages.add(message)
@@ -32,19 +31,6 @@ class ChatConsumer(WebsocketConsumer):
             'message': self.message_to_json(message)
         }
         return self.send_chat_message(content)
-
-    #     author = data['from']
-    #     author_user = User.objects.filter(username=author)[0]
-    #     user = User.objects.get(username=author)
-    #     cont = Contact.objects.get(user=user)
-    #     message = Message.objects.create(
-    #         contact=cont, 
-    #         content=data['message'])
-    #     content = {
-    #         'command': 'new_message',
-    #         'message': self.message_to_json(message)
-    #     }
-    #     return self.send_chat_message(content)
 
     def messages_to_json(self, messages):
         result = []
@@ -83,9 +69,8 @@ class ChatConsumer(WebsocketConsumer):
     def receive(self, text_data):
         data = json.loads(text_data)
         self.commands[data['command']](self, data)
-        
 
-    def send_chat_message(self, message):    
+    def send_chat_message(self, message):
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
